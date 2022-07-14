@@ -5,7 +5,6 @@ pub mod incoming;
 /// A simple type alias for a result whose error case is an IRC error.
 pub type IrcResult<T> = Result<T, IrcError>;
 
-#[repr(u16)]
 #[non_exhaustive]
 #[derive(Clone, Debug, PartialEq, Eq)]
 /// The set of errors which can be created (and then sent to the client) as part 
