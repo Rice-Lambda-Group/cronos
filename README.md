@@ -26,7 +26,7 @@ An Irc server implmented in Rust
 - [ ] Connection Registration
 - [ ] Channels
 - [ ] Basic IRC commands
-- [ ] Make a parser for Messing Parsing
+- [ ] Make a parser for Messaging Parsing
 - [ ] Support TLS and SASL
 - [ ] Support https://defs.ircdocs.horse/
 - [ ] Features:
