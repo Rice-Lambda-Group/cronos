@@ -29,27 +29,27 @@ An Irc server implmented in Rust
 - [ ] Make a parser for Messaging Parsing
 - [ ] Support TLS and SASL
 - [ ] Support https://defs.ircdocs.horse/
-- [ ] Features:
-      - [ ] AWAYLEN
-      - [ ] CASEMAPPING
-      - [ ] CHANLIMIT
-      - [ ] CHANMODES
-      - [ ] CHANNELLEN
-      - [ ] CHANTYPES
-      - [ ] ELIST
-      - [ ] EXCEPTS
-      - [ ] HOSTLEN
-      - [ ] INVEX
-      - [ ] KICKLEN
-      - [ ] MAXLIST
-      - [ ] MAXTARGETS
-      - [ ] MODES
-      - [ ] NETWORK
-      - [ ] NICKLEN
-      - [ ] PREFIX
-      - [ ] SAFELIST
-      - [ ] SILENCE
-      - [ ] STATUSMSG
-      - [ ] TARGMAX
-      - [ ] TOPICLEN
-      - [ ] USERLEN
+- [ ] Features:  
+      - [ ] AWAYLEN  
+      - [ ] CASEMAPPING  
+      - [ ] CHANLIMIT  
+      - [ ] CHANMODES  
+      - [ ] CHANNELLEN  
+      - [ ] CHANTYPES  
+      - [ ] ELIST  
+      - [ ] EXCEPTS  
+      - [ ] HOSTLEN  
+      - [ ] INVEX  
+      - [ ] KICKLEN  
+      - [ ] MAXLIST  
+      - [ ] MAXTARGETS  
+      - [ ] MODES  
+      - [ ] NETWORK  
+      - [ ] NICKLEN  
+      - [ ] PREFIX  
+      - [ ] SAFELIST  
+      - [ ] SILENCE  
+      - [ ] STATUSMSG  
+      - [ ] TARGMAX  
+      - [ ] TOPICLEN  
+      - [ ] USERLEN  
