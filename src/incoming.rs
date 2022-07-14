@@ -45,6 +45,21 @@ impl InMessage {
     /// 
     /// Will consume all bytes from `source` until it encounters a CRLF 
     /// (carriage-return, line-feed) pair of bytes.
+    /// 
+    /// # Errors
+    /// 
+    /// This function will return an error in one of 3 cases:
+    /// * The message received is incorrectly formatted, or otherwise cannot be 
+    ///     parsed.
+    ///     In this case, the return value will be of variant 
+    ///     `Err(ParseError::Irc)`.
+    /// * There was an I/O error while trying to read the incoming input. 
+    ///     In this case, the return value will be of variant 
+    ///     `Err(ParseError::Io)`.
+    /// * The connection was closed, or the end of the reader was reached, while 
+    ///     parsing the line. 
+    ///     In this case, the return value will be of variant 
+    ///     `Err(ParseError::End)`.
     pub fn parse_line(source: &mut dyn Read) -> Result<InMessage, ParseError> {
         let mut bytes = source.bytes().peekable();
 
@@ -107,9 +122,9 @@ mod tests {
     use super::*;
 
     /// Helper function for testing the parser. `input` is 
-    fn parse_helper(input: &[u8], expected: Result<InMessage, ParseError>) {
+    fn parse_helper(input: &[u8], expected: &Result<InMessage, ParseError>) {
         let mut cursor = Cursor::new(input);
-        assert_eq!(InMessage::parse_line(&mut cursor), expected);
+        assert_eq!(InMessage::parse_line(&mut cursor), *expected);
     }
 
     #[test]
@@ -117,7 +132,7 @@ mod tests {
     fn parse_nick() {
         parse_helper(
             b"NICK johnny5\r\n", 
-            Ok(InMessage::Nick("johnny5".bytes().collect()))
+            &Ok(InMessage::Nick("johnny5".bytes().collect()))
         );
     }
 }

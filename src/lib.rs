@@ -1,4 +1,4 @@
-#![feature(arbitrary_enum_discriminant)]
+#![warn(clippy::pedantic)]
 
 pub mod incoming;
 
@@ -17,7 +17,7 @@ pub enum IrcError {
     /* TODO fill out the rest of the error numbers here */
     /// The client did not give a nickname when sending a `NICK` message to the 
     /// server.
-    NoNicknameGiven = 431,
+    NoNicknameGiven,
     /// The client gave a nickname that was illegal, such as one containing 
     /// illegal characters.
     /// The only field of this error is the attempted nickname which was 
@@ -25,14 +25,14 @@ pub enum IrcError {
     /// 
     /// Note that the standard misspells "erroneous" as "erroneus." 
     /// When possible, we use the correct spelling.
-    ErroneousNickname(Vec<u32>) = 432,
+    ErroneousNickname(Vec<u32>),
     /// The client attempted to name themselves a nickname that was already in 
     /// use. 
     /// The only field of this error is the attempted nickname that was already 
     /// in use.
-    NicknameInUse(Vec<u32>) = 433,
+    NicknameInUse(Vec<u32>),
     /// When merging with another server, two different clients collided because 
     /// they have the same nickname. 
     /// The correct solution to this problem is to kick both users immediately.
-    NicknameCollision(Vec<u32>) = 436,
+    NicknameCollision(Vec<u32>),
 }
