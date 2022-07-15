@@ -21,6 +21,7 @@ An Irc server implmented in Rust
 # TODO
 - [ ] Connection setup
 - [X] Logging on the server side to better help us find and diagnose problems
+
       - [ ] Define what needs to be `DEBUG`, `INFO`, `TRACE`, `WARN` and `ERROR`s
 - [ ] Server-to-Server protocol
 - [ ] Client-to-Client protocol
