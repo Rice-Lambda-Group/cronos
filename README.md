@@ -5,6 +5,8 @@ An Irc server implmented in Rust
 # Goals
 - Easy to use
 - No nightly features unless needed
+      - Able: I'd like to propose no nightly features period 
+            As well as `#![deny(unsafe_code)]` and `#![deny(missing_docs)]`
 - Make IRC more assessible
 - Support TLS and SASL
 - Support "Modern IRC"
