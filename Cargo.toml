@@ -7,3 +7,9 @@ edition = "2021"
 
 [dependencies]
 tokio = { version = "1.20.0", features = ["full"] }
+# Useful for predefined log macros and a decent trait for loggers
+log = "0.4.17"
+# Useful for styling text in the terminal
+lliw = "0.2.0"
+# Useful for getting time in a simple manner
+chrono = "0.4.19"

@@ -3,6 +3,7 @@
 //! A rust library for specifying
 
 pub mod incoming;
+pub mod logging;
 pub mod modes;
 
 /// A simple type alias for a result whose error case is an IRC error.
