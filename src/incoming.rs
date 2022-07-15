@@ -1,32 +1,33 @@
-//! A module for defining the incoming messages and other associated parsers of 
+//! A module for defining the incoming messages and other associated parsers of
 //! an IRC server.
 
-use std::{io::Read, collections::HashMap, iter::Peekable};
+use std::{collections::HashMap, io::Read, iter::Peekable};
 
 use crate::IrcError;
 
 #[non_exhaustive]
 #[derive(Clone, Debug, PartialEq, Eq)]
-/// The incoming IRC messages that can be received by this server. 
-/// 
-/// String fields in messages are handled as an array of bytes, as the IRC 
-/// protocol makes no guarantees that character encodings will be correct. 
-/// 
-/// Since it's assumed that the received messages will come from a stream of 
-/// bytes, incoming messages own their own buffers, instead of having a view 
+/// The incoming IRC messages that can be received by this server.
+///
+/// String fields in messages are handled as an array of bytes, as the IRC
+/// protocol makes no guarantees that character encodings will be correct.
+///
+/// Since it's assumed that the received messages will come from a stream of
+/// bytes, incoming messages own their own buffers, instead of having a view
 /// over some other data.
 pub enum InMessage {
-    /// Notify the server of a user's nickname. The only field is the bytes of 
+    /// Notify the server of a user's nickname. The only field is the bytes of
     /// the user's nickname.
     Nick(Vec<u8>),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+/// Errors related to parsing irc messages
 pub enum ParseError {
-    /// We were unable to parse this message because the message was incorrect, 
+    /// We were unable to parse this message because the message was incorrect,
     /// and the client should accordingly be notified.
     Irc(IrcError),
-    /// We were unable to parse this message because of an input/output error. 
+    /// We were unable to parse this message because of an input/output error.
     /// The error kind is given.
     Io(std::io::ErrorKind),
     /// The input stream suddenly ended (such as by sending an EOF).
@@ -40,25 +41,25 @@ impl From<std::io::Error> for ParseError {
 }
 
 impl InMessage {
-    /// Read an incoming line of a message from a source, and attempt to create 
-    /// an `InMessage` from it. 
-    /// 
-    /// Will consume all bytes from `source` until it encounters a CRLF 
+    /// Read an incoming line of a message from a source, and attempt to create
+    /// an `InMessage` from it.
+    ///
+    /// Will consume all bytes from `source` until it encounters a CRLF
     /// (carriage-return, line-feed) pair of bytes.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// This function will return an error in one of 3 cases:
-    /// * The message received is incorrectly formatted, or otherwise cannot be 
+    /// * The message received is incorrectly formatted, or otherwise cannot be
     ///     parsed.
-    ///     In this case, the return value will be of variant 
+    ///     In this case, the return value will be of variant
     ///     `Err(ParseError::Irc)`.
-    /// * There was an I/O error while trying to read the incoming input. 
-    ///     In this case, the return value will be of variant 
+    /// * There was an I/O error while trying to read the incoming input.
+    ///     In this case, the return value will be of variant
     ///     `Err(ParseError::Io)`.
-    /// * The connection was closed, or the end of the reader was reached, while 
-    ///     parsing the line. 
-    ///     In this case, the return value will be of variant 
+    /// * The connection was closed, or the end of the reader was reached, while
+    ///     parsing the line.
+    ///     In this case, the return value will be of variant
     ///     `Err(ParseError::End)`.
     pub fn parse_line(source: &mut dyn Read) -> Result<InMessage, ParseError> {
         let mut bytes = source.bytes().peekable();
@@ -96,17 +97,15 @@ impl InMessage {
             params
         };
 
-        // now that we've extracted all the strings, put it together in a more 
+        // now that we've extracted all the strings, put it together in a more
         // readable message
         todo!();
     }
 }
 
-/// Helper function to consume all spaces in an iterator. 
+/// Helper function to consume all spaces in an iterator.
 /// Will not consume any bytes which are not the ASCII space byte (b' ').
-fn consume_spaces(
-    iter: &mut Peekable<std::io::Bytes<&mut dyn Read>>
-) -> Result<(), ParseError> {
+fn consume_spaces(iter: &mut Peekable<std::io::Bytes<&mut dyn Read>>) -> Result<(), ParseError> {
     while let Ok(b' ') = iter.peek().ok_or(ParseError::End)? {
         iter.next().unwrap()?;
     }
@@ -121,7 +120,7 @@ mod tests {
 
     use super::*;
 
-    /// Helper function for testing the parser. `input` is 
+    /// Helper function for testing the parser. `input` is
     fn parse_helper(input: &[u8], expected: &Result<InMessage, ParseError>) {
         let mut cursor = Cursor::new(input);
         assert_eq!(InMessage::parse_line(&mut cursor), *expected);
@@ -131,8 +130,8 @@ mod tests {
     /// Test that a nickname command is parsed correctly.
     fn parse_nick() {
         parse_helper(
-            b"NICK johnny5\r\n", 
-            &Ok(InMessage::Nick("johnny5".bytes().collect()))
+            b"NICK johnny5\r\n",
+            &Ok(InMessage::Nick("johnny5".bytes().collect())),
         );
     }
 }
