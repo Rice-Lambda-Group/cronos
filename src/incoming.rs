@@ -1,6 +1,7 @@
 //! A module for defining the incoming messages and other associated parsers of
 //! an IRC server.
 
+use bytes::{Bytes, BytesMut};
 use std::{collections::HashMap, io::Read, iter::Peekable};
 
 use crate::IrcError;
@@ -11,9 +12,26 @@ use crate::IrcError;
 pub struct Message {
     /// The server which was the original source of this message. The source
     /// will always be `None` for messages received directly from a client.
-    source: Option<Vec<u8>>,
+    source: Option<Source>,
     /// The specific sub-type of the message and its parameters.
     kind: MessageKind,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+/// The possible original sources of a message.
+pub enum Source {
+    /// A server is responsible for the creation of this message. The only field
+    /// is the name of the server.
+    Server(Bytes),
+    /// A user is responsible for the creation of this message.
+    User {
+        /// The nickname of the user who created the original message.
+        nickname: Bytes,
+        /// The user ID of the user who created the original message.
+        user: Option<Bytes>,
+        /// The host server, to which the original message was sent.
+        host: Option<Bytes>,
+    },
 }
 
 #[non_exhaustive]
@@ -29,7 +47,7 @@ pub struct Message {
 pub enum MessageKind {
     /// Notify the server of a user's nickname. The only field is the bytes of
     /// the user's nickname.
-    Nick(Vec<u8>),
+    Nick(Bytes),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -68,7 +86,7 @@ impl Message {
     ///
     /// # Errors
     ///
-    /// This function will return an error in one of 3 cases:
+    /// This function will return an error in one of 4 cases:
     /// * The message received is incorrectly formatted, or otherwise cannot be
     ///     parsed.
     ///     In this case, the return value will be of variant
@@ -80,19 +98,23 @@ impl Message {
     ///     parsing the line.
     ///     In this case, the return value will be of variant
     ///     `Err(ParseError::End)`.
+    /// * The message was malformed in a way which is not covered by an
+    ///     IRC-standard error code.
+    ///     In this case, the return value will be of variant
+    ///     `Err(ParseError::Malformed)`.
     ///
     /// # Panics
     /// fuk u clippy
-    pub fn parse_line(source: &mut dyn Read) -> Result<Message, ParseError> {
-        let mut bytes = source.bytes().peekable();
+    pub fn parse_line(in_stream: &mut dyn Read) -> Result<Message, ParseError> {
+        let mut bytes = in_stream.bytes().peekable();
 
         // check for tags
-        let tags: HashMap<Vec<u8>, Vec<u8>> = match bytes.peek().ok_or(ParseError::End)? {
+        let tags: HashMap<Bytes, Bytes> = match bytes.peek().ok_or(ParseError::End)? {
             Ok(b'@') => todo!(),
             _ => HashMap::new(),
         };
         // check for source identifier
-        let source: Option<Vec<u8>> = match bytes.peek().ok_or(ParseError::End)? {
+        let source: Option<Source> = match bytes.peek().ok_or(ParseError::End)? {
             Ok(b':') => todo!(),
             _ => None,
         };
@@ -100,20 +122,20 @@ impl Message {
         // Extract a command.
         // here, we assume there are no leading spaces.
         let verb = {
-            let mut buf = Vec::new();
+            let mut buf = BytesMut::new();
             let mut byte = bytes.next().ok_or(ParseError::End)??;
             while byte.is_ascii_alphanumeric() {
-                buf.push(byte);
+                buf.extend(Some(byte));
                 byte = bytes.next().ok_or(ParseError::End)??;
             }
             consume_spaces(&mut bytes)?;
-            buf
+            buf.freeze()
         };
 
         // verb is now a sequence of alphanumeric bytes.
 
         // lastly, extract the parameters. `params` will have
-        let params: Vec<Vec<u8>> = {
+        let params: Vec<Bytes> = {
             let mut params = Vec::new();
             loop {
                 let next_byte = bytes.peek().ok_or(ParseError::End)?.as_ref()?;
@@ -135,7 +157,7 @@ impl Message {
             source,
             kind: match std::convert::AsRef::<[u8]>::as_ref(&verb.to_ascii_uppercase()) {
                 b"NICK" => match params.len() {
-                    0 => Err(ParseError::Irc(IrcError::NeedMoreParams(verb)))?,
+                    0 => Err(ParseError::Irc(IrcError::NoNicknameGiven))?,
                     1 => MessageKind::Nick(params[0].clone()),
                     _ => Err(ParseError::Irc(IrcError::ErroneousNickname(
                         params[0].clone(),
@@ -149,31 +171,31 @@ impl Message {
     /// Parse a single parameter string. I
     fn parse_param(
         bytes: &mut Peekable<std::io::Bytes<&mut dyn Read>>,
-    ) -> Result<Vec<u8>, ParseError> {
+    ) -> Result<Bytes, ParseError> {
         // Characters which cannot be part of the non-trailing parameter.
         const ESCAPES: &[u8] = b" \r\n\x00";
-        let mut param = Vec::new();
+        let mut param = BytesMut::new();
         match bytes.peek().ok_or(ParseError::End)? {
             Ok(b':') => {
                 bytes.next().unwrap().unwrap();
                 // read up until we reach the end
                 while !b"\r\n\x00".contains(bytes.peek().ok_or(ParseError::End)?.as_ref()?) {
-                    param.push(bytes.next().unwrap().unwrap());
+                    param.extend(Some(bytes.next().unwrap().unwrap()));
                 }
             }
             Ok(byte) => {
                 if ESCAPES.contains(byte) {
-                    return Ok(param);
+                    return Ok(param.freeze());
                 }
 
                 while !ESCAPES.contains(bytes.peek().ok_or(ParseError::End)?.as_ref()?) {
-                    param.push(bytes.next().unwrap().unwrap());
+                    param.extend(Some(bytes.next().unwrap().unwrap()));
                 }
             }
             Err(e) => return Err(e.into()),
         }
 
-        Ok(param)
+        Ok(param.freeze())
     }
 }
 
@@ -222,6 +244,6 @@ mod tests {
                 source: None,
                 kind: MessageKind::Nick("Reginald P: Floorbuster".bytes().collect()),
             }),
-        )
+        );
     }
 }

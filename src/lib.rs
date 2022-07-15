@@ -1,6 +1,8 @@
 #![warn(clippy::pedantic)]
 #![warn(clippy::cargo)]
 
+use bytes::Bytes;
+
 pub mod incoming;
 
 /// A simple type alias for a result whose error case is an IRC error.
@@ -19,7 +21,7 @@ pub enum IrcError {
     /// how to process.
     ///
     /// This error is sometimes referred to by its number, 421.
-    UnknownCommand(Vec<u8>),
+    UnknownCommand(Bytes),
     /// The client did not give a nickname when sending a `NICK` message to the
     /// server.
     ///
@@ -33,25 +35,25 @@ pub enum IrcError {
     /// Note that the standard misspells "erroneous" as "erroneus."
     /// When possible, we use the correct spelling.
     /// This error is sometimes referred to by its number, 432.
-    ErroneousNickname(Vec<u8>),
+    ErroneousNickname(Bytes),
     /// The client attempted to name themselves a nickname that was already in
     /// use.
     /// The only field of this error is the attempted nickname that was already
     /// in use.
     ///
     /// This error is sometimes referred to by its number, 433.
-    NicknameInUse(Vec<u8>),
+    NicknameInUse(Bytes),
     /// When merging with another server, two different clients collided because
     /// they have the same nickname.
     /// The correct solution to this problem is to kick both users immediately.
     ///
     /// This error is sometimes referred to by its number, 436.
-    NicknameCollision(Vec<u8>),
+    NicknameCollision(Bytes),
     /// A message was sent to this server, but too few parameters were supplied
     /// for the message to be properly parsed.
     /// The only field of this variant is the command which did not receive
     /// enough parameters.
     ///
     /// This error is sometimes referred to by its number, 461.
-    NeedMoreParams(Vec<u8>),
+    NeedMoreParams(Bytes),
 }
